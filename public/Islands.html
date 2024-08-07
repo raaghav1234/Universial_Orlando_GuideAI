@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Universal Islands Chatbot</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/harry-potter');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('https://insidethemagic.net/wp-content/uploads/2023/08/Untitled-design-53-1.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            font-family: 'Harry Potter', sans-serif;
+            color: #FFD700;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 60px; /* Space for fixed header */
+        }
+
+        #chat-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            max-width: 90%;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Harry Potter', sans-serif;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        #chat-history {
+            flex-grow: 1;
+            height: 300px;
+            overflow-y: scroll;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-message, .bot-message {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            background-color: #f0f0f0;
+            text-align: right;
+            color: #000;
+        }
+
+        .bot-message {
+            background-color: #e0f0e0;
+            text-align: left;
+            color: #000;
+        }
+
+        form {
+            display: flex;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #FFC107;
+        }
+
+        #loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="index.html">Universal Studios</a></li>
+                <li><a href="Islands.html">Universal Islands</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="chat-container">
+            <h1>Universal Islands Guide</h1>
+            <div id="chat-history"></div>
+            <form id="chat-form">
+                <input type="text" id="user-input" placeholder="I am Max, ask me anything about the Islands..." required>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+        <div id="loader">
+            <img src="loader.gif" width="220px">
+        </div>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const form = document.getElementById('chat-form');
+
+        async function sendMessage() {
+            const userMessage = userInput.value;
+            userInput.value = ''; // Clear input field
+            try {
+                const response = await fetch('/islands-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userInput: userMessage }),
+                });
+
+                const data = await response.json();
+                const botMessage = data.response;
+                // Add chat message to the chat history
+                chatHistory.innerHTML += `<div class="user-message">${userMessage}</div>`;
+                chatHistory.innerHTML += `<div class="bot-message">${botMessage}</div>`;
+
+                // Scroll to the bottom of the chat history
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } catch (error) {
+                console.error('Error:', error);
+                // Handle errors gracefully, e.g., display an error message to the user
+            }
+        }
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent form submission
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block'; // Show the loader
+            sendMessage().finally(() => {
+                loader.style.display = 'none'; // Hide the loader after the message is sent
+            });
+        });
+    </script>
+</body>
+
+</html>
